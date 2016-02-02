@@ -77,7 +77,7 @@ def load_movies():
                       released_at=released_at,
                       imdb_url=imdb_url)
 
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
 
         db.session.add(movie)
     # print "Movies2"
