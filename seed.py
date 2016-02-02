@@ -39,10 +39,14 @@ def load_users():
 def load_movies():
     """Load movies from u.item into database."""
 
+    print "Movies"
+
+    # import pdb; pdb.set_trace()
+
     Movie.query.delete()
 
     for row in open("seed_data/u.item"):
-        row=row.rstrip()
+        row = row.rstrip()
         # movie_id, movie_title, release_date, video_release, imdb_url, 
         # unknown, action, adventure, animation, childrens, comedy, crime,
         # documentary, drama, fantasy, film_noir, horror, musical, mystery,
@@ -50,36 +54,48 @@ def load_movies():
 
         data_list = row.split("|")
         movie_id = data_list[0]
-        movie_title = data_list[1]
-        release_date = data_list[2]
+        title = data_list[1]
+        released_at = data_list[2]
         imdb_url = data_list[4]
 
-        movie_title = movie_title[:-6]
+
+        #throw away movie without a title.
+        if title:
+            title = title[:-7]
+        else:
+            continue
 
         # change date string to datetime object
         # from datetime import datetime
-        if release_date:
-            release_date = datetime.strptime(release_date, '%d-%b-%Y')
+        if released_at:
+            released_at = datetime.strptime(released_at, '%d-%b-%Y')
         else:
-            release_date = None
+            released_at = None
 
         movie = Movie(movie_id=movie_id,
-                      title=movie_title,
-                      released_at=release_date,
+                      title=title,
+                      released_at=released_at,
                       imdb_url=imdb_url)
 
-        db.session.add(movie)
+        import pdb; pdb.set_trace()
 
-    db.session.commit()
+        db.session.add(movie)
+    # print "Movies2"
+
+        db.session.commit()
+        # print "Movies3"
+
 
 def load_ratings():
     """Load ratings from u.data into database."""
+
+    print "Ratings"
 
     Rating.query.delete()
 
     for row in open("seed_data/u.data"):
         row = row.rstrip()
-        user_id, movie_id, score, timestamp = row.split("|")
+        user_id, movie_id, score, timestamp = row.split()
 
         rating = Rating(movie_id=movie_id,
                         user_id=user_id,
@@ -88,10 +104,6 @@ def load_ratings():
         db.session.add(rating)
 
     db.session.commit()
-
-
-
-
 
 
 def set_val_user_id():
@@ -114,7 +126,8 @@ if __name__ == "__main__":
     db.create_all()
 
     # Import different types of data
-    load_users()
+    # load_users()
+    # load_ratings()
     load_movies()
-    load_ratings()
+    
     set_val_user_id()
