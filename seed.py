@@ -2,8 +2,10 @@
 
 from sqlalchemy import func
 from model import User
-# from model import Rating
-# from model import Movie
+from datetime import datetime
+
+from model import Rating
+from model import Movie
 
 from model import connect_to_db, db
 from server import app
@@ -41,16 +43,29 @@ def load_movies():
 
     for row in open("seed_data/u.item"):
         row=row.rstrip()
-        movie_id, movie_title, release_date, video_release, imdb_url, 
-        unknown, action, adventure, animation, childrens, comedy, crime,
-        documentary, drama, fantasy, film_noir, horror, musical, mystery,
-        romance, sci_fi, thriller, war, western =row.split("|")
+        # movie_id, movie_title, release_date, video_release, imdb_url, 
+        # unknown, action, adventure, animation, childrens, comedy, crime,
+        # documentary, drama, fantasy, film_noir, horror, musical, mystery,
+        # romance, sci_fi, thriller, war, western = row.split("|")
+
+        data_list = row.split("|")
+        movie_id = data_list[0]
+        movie_title = data_list[1]
+        release_date = data_list[2]
+        imdb_url = data_list[4]
 
         movie_title = movie_title[:-6]
-        
+
+        # change date string to datetime object
+        # from datetime import datetime
+        if release_date:
+            release_date = datetime.strptime(release_date, '%d-%b-%Y')
+        else:
+            release_date = None
+
         movie = Movie(movie_id=movie_id,
                       title=movie_title,
-                      release_at=release_date,
+                      released_at=release_date,
                       imdb_url=imdb_url)
 
         db.session.add(movie)
@@ -59,6 +74,22 @@ def load_movies():
 
 def load_ratings():
     """Load ratings from u.data into database."""
+
+    Rating.query.delete()
+
+    for row in open("seed_data/u.data"):
+        row = row.rstrip()
+        user_id, movie_id, score, timestamp = row.split("|")
+
+        rating = Rating(movie_id=movie_id,
+                        user_id=user_id,
+                        score=score)
+
+        db.session.add(rating)
+
+    db.session.commit()
+
+
 
 
 
