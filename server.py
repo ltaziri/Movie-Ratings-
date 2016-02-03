@@ -38,7 +38,55 @@ def show_sign_in_form():
 
     return render_template("signin.html")
 
+@app.route('/login', methods=['POST'])
+def handle_sign_in_form():
+    """handle submission of the login form."""
 
+    email = request.form.get("email")
+    password = request.form.get("password")
+
+    existing_user = User.query.filter_by(email=email).first()
+
+    if existing_user:
+        if password == existing_user.password:
+            flash("Logged In.")
+            session["user_id"] = existing_user.user_id
+            return redirect("/") # log in
+        else:
+            flash("Invalid password.")
+    else:
+        flash("You are not signed up yet, please sign up.")
+        return redirect('/sign_up')
+
+@app.route('/sign_up')
+def show_sign_up_form():    
+    """Show sign up form"""
+
+    return render_template("sign_up_form.html")
+
+@app.route('/sign_up', methods=['POST'])
+def handle_sign_up_form():
+    """handle sign up form."""
+
+    email = request.form.get("email")
+    password = request.form.get("password")
+    age = request.form.get("age")
+    zipcode = request.form.get("zipcode")
+
+    age = int(age)
+    
+    new_user = User.query.filter_by(email=email).first()
+
+    if new_user:
+        flash("email already exists, please sign in")
+        return redirect("/sign_in")
+    else:
+        user = User(email=email, password=password, age=age, zipcode=zipcode)
+        db.session.add(user)
+        db.session.commit()
+        flash("You are successfully signed up!")
+
+    return redirect('/sign_in')
 
 
 if __name__ == "__main__":
