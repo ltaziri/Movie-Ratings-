@@ -82,7 +82,7 @@ def load_movies():
         db.session.add(movie)
     # print "Movies2"
 
-        db.session.commit()
+    db.session.commit()
         # print "Movies3"
 
 
@@ -126,8 +126,8 @@ if __name__ == "__main__":
     db.create_all()
 
     # Import different types of data
-    # load_users()
-    # load_ratings()
+    load_users()
+    load_ratings()
     load_movies()
     
     set_val_user_id()
