@@ -32,6 +32,14 @@ def user_list():
 
     return render_template("user_list.html", users=users)
 
+@app.route('/movies')
+def movie_list():
+    """Show list of movies."""
+
+    movies = Movie.query.order_by('title').all()
+
+    return render_template("movie_list.html", movies=movies)
+
 @app.route('/sign_in')
 def show_sign_in_form():    
     """Show sign in form"""
@@ -51,12 +59,22 @@ def handle_sign_in_form():
         if password == existing_user.password:
             flash("Logged In.")
             session["user_id"] = existing_user.user_id
-            return redirect("/") # log in
+            return redirect("/users/" + str(existing_user.user_id)) # log in
         else:
             flash("Invalid password.")
+            return redirect("/")
     else:
         flash("You are not signed up yet, please sign up.")
         return redirect('/sign_up')
+
+@app.route('/log_out')
+def log_out():
+    """Log out of session"""
+
+    del session['user_id']
+    flash("You have been logged out.")
+
+    return redirect("/")
 
 @app.route('/sign_up')
 def show_sign_up_form():    
@@ -70,10 +88,10 @@ def handle_sign_up_form():
 
     email = request.form.get("email")
     password = request.form.get("password")
-    age = request.form.get("age")
+    age = int(request.form.get("age"))
     zipcode = request.form.get("zipcode")
 
-    age = int(age)
+    # age = int(age)
     
     new_user = User.query.filter_by(email=email).first()
 
@@ -87,6 +105,47 @@ def handle_sign_up_form():
         flash("You are successfully signed up!")
 
     return redirect('/sign_in')
+
+
+@app.route("/users/<int:user_id>")
+def show_user_info(user_id): #This is awesome!!!!
+
+    user = User.query.get(user_id)
+
+    ratings = Rating.query.filter_by(user_id=user_id).all()
+
+    return render_template("user_info.html", user=user, ratings=ratings)
+
+
+@app.route("/movies/<int:movie_id>")
+def show_movie_info(movie_id): #This is awesome!!!!
+
+    movie = Movie.query.get(movie_id)
+
+    ratings = Rating.query.filter_by(movie_id=movie_id).all()
+
+    return render_template("movie_info.html", movie=movie, ratings=ratings)
+
+@app.route('/rate_a_movie/<int:movie_id>', methods=['POST'])
+def rate_movie_form(movie_id):
+    """Handle movie rating form."""
+
+    movie_ratings = Ratings.query.filter_by(movie_id=movie_id).all()
+
+    if session['user_id']:
+        score = request.form.get("score")
+        user_id = session['user_id']
+            if user_id in movie_ratings:
+                
+
+        rating = Rating(movie_id=movie_id, user_id=user_id, score=score)
+        db.session.add(rating)
+        db.session.commit()
+    else:
+        flash("Sorry! You can't rate movie if you are not signed in.")
+
+    return redirect("/movies/"+str(movie_id))
+
 
 
 if __name__ == "__main__":
