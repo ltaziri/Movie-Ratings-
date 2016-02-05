@@ -137,6 +137,8 @@ def rate_movie_form(movie_id):
     # movie_ratings = Ratings.query.filter_by(movie_id=movie_id).all()
     user_id = session.get('user_id')
     score = int(request.form.get("score"))
+
+    print movie_id, user_id
     # try:
     if not user_id:
         # raise Exception("Sorry! You can't rate a movie until you sign in.")
@@ -145,13 +147,14 @@ def rate_movie_form(movie_id):
 
         # movie_rating = Rating.query.filter(Movie.movie_id == movie_id, User.user_id == user_id).one()
         # print movie_rating
-    rating = Rating.query.filter(Movie.movie_id == movie_id, User.user_id == user_id).first()
+    rating = Rating.query.filter(Rating.movie_id == movie_id, Rating.user_id == user_id).first()
+    print "print rating here: ", rating
 
-    if not rating:
-        new_rating = Rating(movie_id=movie_id, user_id=user_id, score=score)
-        db.session.add(new_rating)
-        flash("Rating has been added.")
-        # print movie_id, user_id
+    if rating:
+        rating.score = score
+        flash("Rating has been updated.")
+        
+        print "movie id and user id: ", movie_id, user_id
         # rating.score = score
         # new_rating = ratings.update().\
         # where(movie_id==movie_id, user_id==user_id).\
@@ -160,11 +163,10 @@ def rate_movie_form(movie_id):
         # conn.execute(new_rating)
         # flash("Rating has been updated.")
     else:
-        rating.score = score
-        flash("Rating has been updated.")
-        # new_rating = Rating(movie_id=movie_id, user_id=user_id, score=score)
-        # db.session.add(new_rating)
-        # flash("Rating has been added.")
+        new_rating = Rating(movie_id=movie_id, user_id=user_id, score=score)
+        db.session.add(new_rating)
+        flash("Rating has been added.")
+
     db.session.commit()
 
         
@@ -172,7 +174,7 @@ def rate_movie_form(movie_id):
     #     flash("Sorry! You can't rate movie if you are not signed in.")
     #     return redirect("/sign_in")
 
-    return redirect("/movies/"+str(movie_id))
+    return redirect("/movies/%s" % movie_id)
 
 
 
