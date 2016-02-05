@@ -7,6 +7,9 @@ from flask_debugtoolbar import DebugToolbarExtension
 
 from model import  User, Rating, Movie, connect_to_db, db
 
+# from sqlalchemy import update
+
+
 
 app = Flask(__name__)
 
@@ -126,23 +129,48 @@ def show_movie_info(movie_id): #This is awesome!!!!
 
     return render_template("movie_info.html", movie=movie, ratings=ratings)
 
+
 @app.route('/rate_a_movie/<int:movie_id>', methods=['POST'])
 def rate_movie_form(movie_id):
     """Handle movie rating form."""
 
-    movie_ratings = Ratings.query.filter_by(movie_id=movie_id).all()
-
-    if session['user_id']:
-        score = request.form.get("score")
-        user_id = session['user_id']
-            if user_id in movie_ratings:
-                
-
-        rating = Rating(movie_id=movie_id, user_id=user_id, score=score)
-        db.session.add(rating)
-        db.session.commit()
-    else:
+    # movie_ratings = Ratings.query.filter_by(movie_id=movie_id).all()
+    user_id = session.get('user_id')
+    score = int(request.form.get("score"))
+    # try:
+    if not user_id:
+        # raise Exception("Sorry! You can't rate a movie until you sign in.")
         flash("Sorry! You can't rate movie if you are not signed in.")
+        return redirect("/sign_in")
+
+        # movie_rating = Rating.query.filter(Movie.movie_id == movie_id, User.user_id == user_id).one()
+        # print movie_rating
+    rating = Rating.query.filter(Movie.movie_id == movie_id, User.user_id == user_id).first()
+
+    if not rating:
+        new_rating = Rating(movie_id=movie_id, user_id=user_id, score=score)
+        db.session.add(new_rating)
+        flash("Rating has been added.")
+        # print movie_id, user_id
+        # rating.score = score
+        # new_rating = ratings.update().\
+        # where(movie_id==movie_id, user_id==user_id).\
+        # values(score=score)
+        # db.session.execute("INSERT INTO ratings (score) VALUES (score);")
+        # conn.execute(new_rating)
+        # flash("Rating has been updated.")
+    else:
+        rating.score = score
+        flash("Rating has been updated.")
+        # new_rating = Rating(movie_id=movie_id, user_id=user_id, score=score)
+        # db.session.add(new_rating)
+        # flash("Rating has been added.")
+    db.session.commit()
+
+        
+    # except KeyError:
+    #     flash("Sorry! You can't rate movie if you are not signed in.")
+    #     return redirect("/sign_in")
 
     return redirect("/movies/"+str(movie_id))
 
